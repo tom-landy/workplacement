@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: fe-college-trial-app
+    runtime: node
+    plan: standard
+    autoDeploy: true
+    healthCheckPath: /health
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    preDeployCommand: npm run prisma:deploy
+    startCommand: npm run start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fe-college-trial-db
+          property: connectionString
+      - key: NEXTAUTH_URL
+        value: https://fe-college-trial-app.onrender.com
+      - key: APP_BASE_URL
+        value: https://fe-college-trial-app.onrender.com
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: EMAIL_DEV_MODE
+        value: "false"
+
+  - type: cron
+    name: fe-college-nightly
+    runtime: node
+    schedule: "0 1 * * *"
+    buildCommand: npm install && npm run prisma:generate
+    startCommand: npm run cron:nightly
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fe-college-trial-db
+          property: connectionString
+
+databases:
+  - name: fe-college-trial-db
+    plan: basic-1gb
