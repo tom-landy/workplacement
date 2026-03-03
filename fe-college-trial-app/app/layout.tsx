@@ -20,6 +20,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/careers/activities">Careers</Link>
               <Link href="/exports">Exports</Link>
             </nav>
+            <div className="ml-auto">
+              <Link
+                href="/login"
+                className="inline-flex items-center rounded border border-white/50 px-3 py-1 text-sm font-medium hover:bg-white/10"
+              >
+                Login
+              </Link>
+            </div>
           </div>
         </header>
         <main className="max-w-6xl mx-auto p-4">{children}</main>
