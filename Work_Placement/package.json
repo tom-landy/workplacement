@@ -13,6 +13,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:ensure-admin": "tsx scripts/ensure-admin.ts",
     "cron:nightly": "tsx scripts/nightly.ts"
   },
   "dependencies": {
