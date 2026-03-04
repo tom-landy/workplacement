@@ -5,6 +5,25 @@ import { prisma } from "@/lib/prisma";
 import { prospectSchema } from "@/lib/validation";
 import { writeAuditEvent } from "@/lib/audit";
 
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || session.user.role !== "STUDENT") {
+    return NextResponse.json({ error: "Unauthorised." }, { status: 403 });
+  }
+
+  const student = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
+  if (!student) {
+    return NextResponse.json({ rows: [] });
+  }
+
+  const rows = await prisma.prospectEmployer.findMany({
+    where: { studentId: student.id },
+    orderBy: { createdAt: "desc" }
+  });
+
+  return NextResponse.json({ rows });
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || session.user.role !== "STUDENT") {
