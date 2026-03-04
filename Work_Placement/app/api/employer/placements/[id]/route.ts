@@ -5,11 +5,27 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.user.role !== "EMPLOYER_SUPERVISOR") {
+  if (!session?.user?.id || (session.user.role !== "EMPLOYER_SUPERVISOR" && session.user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Unauthorised." }, { status: 403 });
   }
 
   const { id } = await context.params;
+
+  if (session.user.role === "ADMIN") {
+    const placement = await prisma.placement.findUnique({
+      where: { id },
+      include: {
+        student: { include: { user: true } },
+        logs: true
+      }
+    });
+
+    if (!placement) {
+      return NextResponse.json({ error: "Placement not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ placement });
+  }
 
   const link = await prisma.employerAccountLink.findUnique({
     where: { userId: session.user.id },

@@ -6,7 +6,7 @@ import { writeAuditEvent } from "@/lib/audit";
 
 export async function POST(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.user.role !== "STUDENT") {
+  if (!session?.user?.id || (session.user.role !== "STUDENT" && session.user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Unauthorised." }, { status: 403 });
   }
 

@@ -11,7 +11,7 @@ const submitSchema = z.object({
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.user.role !== "STUDENT") {
+  if (!session?.user?.id || (session.user.role !== "STUDENT" && session.user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Unauthorised." }, { status: 403 });
   }
 
