@@ -1,0 +1,6 @@
+Student Number,Student name,Student Email,Employer Name,Employer Contact,Employer Email,Employer Phone Number,startDate,endDate,Target Hours
+S1001,Student 1,student1@college.local,Harbour Engineering,Supervisor 1,supervisor1@example.org,01273 000001,2026-04-01,2026-06-30,120
+S1002,Student 2,student2@college.local,Greenline Care,Supervisor 2,supervisor2@example.org,01273 000002,2026-04-08,2026-07-01,90
+S1003,Student 3,student3@college.local,Northgate Digital,Supervisor 3,supervisor3@example.org,01273 000003,2026-04-15,2026-07-10,100
+S1004,Student 4,student4@college.local,Bright Retail Group,Supervisor 4,supervisor4@example.org,01273 000004,2026-04-22,2026-07-15,80
+S1005,Student 5,student5@college.local,Southfield Logistics,Supervisor 5,supervisor5@example.org,01273 000005,2026-05-01,2026-07-31,110

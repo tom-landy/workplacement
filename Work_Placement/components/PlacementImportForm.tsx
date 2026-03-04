@@ -48,8 +48,9 @@ export function PlacementImportForm() {
     <section className="rounded border bg-white p-4 space-y-3">
       <h3 className="text-lg font-semibold">Bulk Placement Upload (CSV/Excel)</h3>
       <p className="text-sm text-slate-600">
-        Required columns: <code>studentEmail</code>, <code>employerName</code>, <code>supervisorEmail</code>,
-        <code> startDate</code>, <code>endDate</code>, <code>hoursTarget</code>.
+        Required columns: <code>Student Number</code>, <code>Student name</code>, <code>Student Email</code>,
+        <code> Employer Name</code>, <code>Employer Contact</code>, <code>Employer Email</code>,
+        <code> Employer Phone Number</code>, <code>startDate</code>, <code>endDate</code>, <code>Target Hours</code>.
       </p>
       <form onSubmit={onSubmit} className="space-y-3">
         <input type="file" accept=".csv,.xlsx,.xls" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />

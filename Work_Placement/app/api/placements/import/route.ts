@@ -49,14 +49,34 @@ export async function POST(req: Request) {
   for (const [index, row] of rows.entries()) {
     const line = index + 2;
 
-    const studentEmail = pick(row, ["studentemail", "student_email", "student email"]);
-    const employerName = pick(row, ["employername", "employer_name", "employer name"]);
-    const supervisorEmail = pick(row, ["supervisoremail", "supervisor_email", "supervisor email"]);
+    const studentNumber = pick(row, ["student number", "student_number", "studentnumber"]);
+    const studentName = pick(row, ["student name", "student_name", "studentname"]);
+    const studentEmail = pick(row, ["student email", "student_email", "studentemail"]).toLowerCase();
+    const employerName = pick(row, ["employer name", "employer_name", "employername"]);
+    const employerContactName = pick(row, ["employer contact", "employer_contact", "employercontact"]);
+    const employerEmail = pick(row, ["employer email", "employer_email", "employeremail"]).toLowerCase();
+    const employerPhoneNumber = pick(row, [
+      "employer phone number",
+      "employer_phone_number",
+      "employerphonenumber",
+      "employer phone"
+    ]);
     const startDateRaw = pick(row, ["startdate", "start_date", "start date"]);
     const endDateRaw = pick(row, ["enddate", "end_date", "end date"]);
-    const hoursTargetRaw = pick(row, ["hourstarget", "hours_target", "hours target"]);
+    const targetHoursRaw = pick(row, ["target hours", "target_hours", "targethours", "hours target"]);
 
-    if (!studentEmail || !employerName || !supervisorEmail || !startDateRaw || !endDateRaw || !hoursTargetRaw) {
+    if (
+      !studentNumber ||
+      !studentName ||
+      !studentEmail ||
+      !employerName ||
+      !employerContactName ||
+      !employerEmail ||
+      !employerPhoneNumber ||
+      !startDateRaw ||
+      !endDateRaw ||
+      !targetHoursRaw
+    ) {
       skipped += 1;
       errors.push(`Row ${line}: missing required columns.`);
       continue;
@@ -64,31 +84,65 @@ export async function POST(req: Request) {
 
     const startDate = new Date(startDateRaw);
     const endDate = new Date(endDateRaw);
-    const hoursTarget = Number(hoursTargetRaw);
+    const targetHours = Number(targetHoursRaw);
 
-    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || !Number.isFinite(hoursTarget)) {
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || !Number.isFinite(targetHours)) {
       skipped += 1;
-      errors.push(`Row ${line}: invalid date or hours target.`);
+      errors.push(`Row ${line}: invalid startDate/endDate/Target Hours.`);
       continue;
     }
 
     const studentUser = await prisma.user.findFirst({
-      where: { email: studentEmail.toLowerCase(), role: "STUDENT" },
+      where: { email: studentEmail, role: "STUDENT" },
       include: { studentProfile: true }
     });
 
-    const employer = await prisma.employer.findFirst({
-      where: { name: { equals: employerName, mode: "insensitive" } }
-    });
-
-    const supervisor = await prisma.employerContact.findFirst({
-      where: { email: supervisorEmail.toLowerCase(), employerId: employer?.id }
-    });
-
-    if (!studentUser?.studentProfile || !employer || !supervisor) {
+    if (!studentUser?.studentProfile) {
       skipped += 1;
-      errors.push(`Row ${line}: student, employer, or supervisor not found.`);
+      errors.push(`Row ${line}: student not found for email ${studentEmail}.`);
       continue;
+    }
+
+    if (studentUser.name.toLowerCase() !== studentName.toLowerCase()) {
+      skipped += 1;
+      errors.push(`Row ${line}: student name does not match email (${studentEmail}).`);
+      continue;
+    }
+
+    const employer =
+      (await prisma.employer.findFirst({
+        where: { name: { equals: employerName, mode: "insensitive" } }
+      })) ??
+      (await prisma.employer.create({
+        data: {
+          name: employerName,
+          sector: "Unknown",
+          address: "Not provided",
+          website: null
+        }
+      }));
+
+    const supervisor =
+      (await prisma.employerContact.findFirst({
+        where: {
+          employerId: employer.id,
+          email: employerEmail
+        }
+      })) ??
+      (await prisma.employerContact.create({
+        data: {
+          employerId: employer.id,
+          name: employerContactName,
+          email: employerEmail,
+          phone: employerPhoneNumber
+        }
+      }));
+
+    if (supervisor.name !== employerContactName || supervisor.phone !== employerPhoneNumber) {
+      await prisma.employerContact.update({
+        where: { id: supervisor.id },
+        data: { name: employerContactName, phone: employerPhoneNumber }
+      });
     }
 
     const existing = await prisma.placement.findFirst({
@@ -113,7 +167,7 @@ export async function POST(req: Request) {
           supervisorContactId: supervisor.id,
           startDate,
           endDate,
-          hoursTarget: Math.round(hoursTarget),
+          hoursTarget: Math.round(targetHours),
           status: "PENDING",
           employerConfirmationStatus: "PENDING"
         }
@@ -138,7 +192,7 @@ export async function POST(req: Request) {
           action: "placement.import.create",
           entityType: "Placement",
           entityId: createdPlacement.id,
-          summary: `Placement imported for ${studentEmail}`,
+          summary: `Placement imported for ${studentEmail} (${studentNumber})`,
           afterJson: createdPlacement
         }
       });
