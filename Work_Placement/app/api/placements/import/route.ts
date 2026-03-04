@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { writeAuditEvent } from "@/lib/audit";
+import { hashPassword } from "@/lib/password";
 
 const allowedRoles = new Set<UserRole>(["ADMIN", "PLACEMENT_OFFICER"]);
 
@@ -41,6 +42,8 @@ export async function POST(req: Request) {
   const wb = XLSX.read(Buffer.from(bytes), { type: "buffer" });
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json<Row>(ws, { raw: false, defval: "" });
+  const defaultStudentPassword = process.env.STUDENT_DEFAULT_PASSWORD ?? "CollegePassphrase2026";
+  const defaultStudentPasswordHash = await hashPassword(defaultStudentPassword);
 
   let created = 0;
   let skipped = 0;
@@ -92,21 +95,84 @@ export async function POST(req: Request) {
       continue;
     }
 
-    const studentUser = await prisma.user.findFirst({
-      where: { email: studentEmail, role: "STUDENT" },
+    const yearGroup = pick(row, ["year group", "year_group", "yeargroup"]) || "Unassigned";
+    const tutorGroup = pick(row, ["tutor group", "tutor_group", "tutorgroup"]) || "Unassigned";
+
+    let studentUser = await prisma.user.findUnique({
+      where: { email: studentEmail },
       include: { studentProfile: true }
     });
 
-    if (!studentUser?.studentProfile) {
+    if (studentUser && studentUser.role !== "STUDENT") {
       skipped += 1;
-      errors.push(`Row ${line}: student not found for email ${studentEmail}.`);
+      errors.push(`Row ${line}: email ${studentEmail} exists but is not a student account.`);
       continue;
     }
 
-    if (studentUser.name.toLowerCase() !== studentName.toLowerCase()) {
+    if (!studentUser) {
+      studentUser = await prisma.user.create({
+        data: {
+          name: studentName,
+          email: studentEmail,
+          role: "STUDENT",
+          isActive: true,
+          passwordHash: defaultStudentPasswordHash,
+          studentProfile: {
+            create: {
+              yearGroup,
+              tutorGroup
+            }
+          }
+        },
+        include: { studentProfile: true }
+      });
+    } else {
+      if (!studentUser.studentProfile) {
+        await prisma.studentProfile.create({
+          data: {
+            userId: studentUser.id,
+            yearGroup,
+            tutorGroup
+          }
+        });
+      }
+      if (studentUser.name !== studentName) {
+        studentUser = await prisma.user.update({
+          where: { id: studentUser.id },
+          data: { name: studentName },
+          include: { studentProfile: true }
+        });
+      } else {
+        studentUser = await prisma.user.findUnique({
+          where: { id: studentUser.id },
+          include: { studentProfile: true }
+        });
+      }
+    }
+
+    if (!studentUser?.studentProfile) {
       skipped += 1;
-      errors.push(`Row ${line}: student name does not match email (${studentEmail}).`);
+      errors.push(`Row ${line}: could not create or find student profile for ${studentEmail}.`);
       continue;
+    }
+
+    const existingStudentNumberNote = await prisma.note.findFirst({
+      where: {
+        studentId: studentUser.studentProfile.id,
+        authorId: session.user.id,
+        category: "student_number",
+        text: studentNumber
+      }
+    });
+    if (!existingStudentNumberNote) {
+      await prisma.note.create({
+        data: {
+          studentId: studentUser.studentProfile.id,
+          authorId: session.user.id,
+          category: "student_number",
+          text: studentNumber
+        }
+      });
     }
 
     const employer =

@@ -52,6 +52,9 @@ export function PlacementImportForm() {
         <code> Employer Name</code>, <code>Employer Contact</code>, <code>Employer Email</code>,
         <code> Employer Phone Number</code>, <code>startDate</code>, <code>endDate</code>, <code>Target Hours</code>.
       </p>
+      <p className="text-sm text-slate-600">
+        Optional columns: <code>Year Group</code>, <code>Tutor Group</code>. Missing students are created automatically.
+      </p>
       <form onSubmit={onSubmit} className="space-y-3">
         <input type="file" accept=".csv,.xlsx,.xls" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         <button type="submit" className="bg-primary text-white" disabled={loading}>
