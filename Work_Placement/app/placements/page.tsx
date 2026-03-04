@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { PlacementAssignmentForm } from "@/components/PlacementAssignmentForm";
+import { PlacementImportForm } from "@/components/PlacementImportForm";
 
 export default async function PlacementsPage() {
   const session = await requireRole(["ADMIN", "PLACEMENT_OFFICER", "TUTOR", "EMPLOYER_SUPERVISOR", "STUDENT"]);
@@ -29,17 +30,20 @@ export default async function PlacementsPage() {
       </section>
 
       {canAssign ? (
-        <PlacementAssignmentForm
-          students={students.map((s) => ({
-            id: s.id,
-            label: `${s.user.name} (${s.user.email})`
-          }))}
-          employers={employers.map((e) => ({
-            id: e.id,
-            name: e.name,
-            contacts: e.contacts
-          }))}
-        />
+        <>
+          <PlacementAssignmentForm
+            students={students.map((s) => ({
+              id: s.id,
+              label: `${s.user.name} (${s.user.email})`
+            }))}
+            employers={employers.map((e) => ({
+              id: e.id,
+              name: e.name,
+              contacts: e.contacts
+            }))}
+          />
+          <PlacementImportForm />
+        </>
       ) : null}
     </div>
   );
