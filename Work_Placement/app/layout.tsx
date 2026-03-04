@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { HeaderMenu } from "@/components/HeaderMenu";
 
 export const metadata: Metadata = {
   title: "College Placement and Careers Platform",
@@ -14,19 +15,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="bg-primary text-white p-4">
           <div className="max-w-6xl mx-auto flex gap-4 items-center">
             <h1 className="font-semibold">College Placement Platform</h1>
-            <nav className="flex gap-3 text-sm">
+            <nav className="hidden md:flex gap-3 text-sm">
               <Link href="/dashboard">Dashboard</Link>
+              <Link href="/students">Students</Link>
               <Link href="/placements">Placements</Link>
               <Link href="/careers/activities">Careers</Link>
               <Link href="/exports">Exports</Link>
             </nav>
             <div className="ml-auto">
-              <Link
-                href="/login"
-                className="inline-flex items-center rounded border border-white/50 px-3 py-1 text-sm font-medium hover:bg-white/10"
-              >
-                Login
-              </Link>
+              <div className="flex items-center gap-2">
+                <HeaderMenu />
+                <Link
+                  href="/login"
+                  className="inline-flex items-center rounded border border-white/50 px-3 py-1 text-sm font-medium hover:bg-white/10"
+                >
+                  Login
+                </Link>
+              </div>
             </div>
           </div>
         </header>
