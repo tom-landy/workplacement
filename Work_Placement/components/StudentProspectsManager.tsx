@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { EmailButton } from "@/components/EmailButton";
 
 type ProspectRow = {
   id: string;
@@ -199,7 +200,10 @@ export function StudentProspectsManager({ initialRows }: { initialRows: Prospect
                     </div>
                   ) : (
                     <div className="text-sm text-slate-700 space-y-1">
-                      <p>Contact: {row.contactName} ({row.contactEmail})</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p>Contact: {row.contactName} ({row.contactEmail})</p>
+                        <EmailButton email={row.contactEmail} subject={`Work Placement Enquiry`} />
+                      </div>
                       <p>Phone: {row.contactPhone || "-"}</p>
                       <p>Address: {row.address || "-"}</p>
                       <p>Sector: {row.sector || "-"}</p>

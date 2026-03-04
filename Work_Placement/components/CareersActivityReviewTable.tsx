@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { EmailButton } from "@/components/EmailButton";
 
 type CompletionRow = {
   id: string;
@@ -47,7 +48,12 @@ export function CareersActivityReviewTable({ activityId, rows }: { activityId: s
         <div className="space-y-2">
           {rows.map((row) => (
             <article key={row.id} className="rounded border p-3 text-sm space-y-2">
-              <p className="font-medium">{row.studentName} ({row.studentEmail})</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-medium">
+                  {row.studentName} ({row.studentEmail})
+                </p>
+                <EmailButton email={row.studentEmail} subject={`Careers Activity Update`} />
+              </div>
               <p>Status: {row.status.toLowerCase().replaceAll("_", " ")}</p>
               <p>Submitted: {row.submittedAt ? new Date(row.submittedAt).toLocaleDateString("en-GB") : "-"}</p>
               <p>Evidence: {row.evidenceReference ?? "-"}</p>

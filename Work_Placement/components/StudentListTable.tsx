@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { EmailButton } from "@/components/EmailButton";
 
 type StudentRow = {
   id: string;
@@ -74,7 +75,12 @@ export function StudentListTable({ rows, canDelete }: { rows: StudentRow[]; canD
               {filtered.map((row) => (
                 <tr key={row.id} className="border-b">
                   <td className="py-2">{row.name}</td>
-                  <td className="py-2">{row.email}</td>
+                  <td className="py-2">
+                    <div className="flex items-center gap-2">
+                      <span>{row.email}</span>
+                      <EmailButton email={row.email} />
+                    </div>
+                  </td>
                   <td className="py-2">{row.yearGroup}</td>
                   <td className="py-2">{row.tutorGroup}</td>
                   {canDelete ? (
