@@ -102,6 +102,13 @@ enum EmailRecordStatus {
   FAILED
 }
 
+enum SmartObjectiveStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
 enum AuthEventType {
   LOGIN_SUCCESS
   LOGIN_FAILURE
@@ -129,6 +136,7 @@ model User {
   activityMarks        StudentActivityCompletion[] @relation("ActivityMarkedBy")
   notesAuthored        Note[]
   prospectReviews      ProspectEmployer[]        @relation("ProspectReviewedBy")
+  smartObjectiveReviews SmartObjective[]          @relation("SmartObjectiveReviewedBy")
   outreachEmails       OutreachEmail[]
   inviteUses           InviteToken[]             @relation("InviteUsedBy")
   passwordResetTokens  PasswordResetToken[]
@@ -177,6 +185,7 @@ model StudentProfile {
   notes           Note[]
   destinations    Destination[]
   prospects       ProspectEmployer[]
+  smartObjectives SmartObjective[]
 
   @@index([yearGroup])
   @@index([tutorGroup])
@@ -570,6 +579,31 @@ model ProspectStatusHistory {
 
   @@index([prospectEmployerId])
   @@index([changedAt])
+}
+
+model SmartObjective {
+  id            String               @id @default(cuid())
+  studentId     String
+  title         String
+  specific      String
+  measurable    String
+  achievable    String
+  relevant      String
+  timeBound     String
+  sortOrder     Int                  @default(0)
+  status        SmartObjectiveStatus @default(DRAFT)
+  submittedAt   DateTime?
+  reviewedAt    DateTime?
+  reviewedById  String?
+  reviewComment String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy User?          @relation("SmartObjectiveReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([status])
 }
 
 model EmailRecord {

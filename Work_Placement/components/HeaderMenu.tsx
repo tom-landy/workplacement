@@ -15,6 +15,8 @@ const links = [
   { href: "/exports", label: "Exports" },
   { href: "/passport", label: "My Passport" },
   { href: "/student/prospects", label: "My Prospects" },
+  { href: "/student/unit2", label: "Unit 2 – SMART Objectives" },
+  { href: "/careers/unit2", label: "Unit 2 – Staff Review" },
   { href: "/employer", label: "Employer Portal" }
 ];
 
